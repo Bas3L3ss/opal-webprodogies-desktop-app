@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, desktopCapturer, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -34,11 +34,12 @@ function createWindow() {
     height: 600,
     minHeight: 600,
     minWidth: 300,
+    hasShadow: false,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
-    focusable: false,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    focusable: true,
+    icon: path.join(process.env.VITE_PUBLIC, "opal-logo.svg"),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -48,25 +49,6 @@ function createWindow() {
   });
   studio = new BrowserWindow({
     width: 400,
-    height: 50,
-    minHeight: 70,
-    maxHeight: 400,
-    minWidth: 300,
-    maxWidth: 400,
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    focusable: false,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      devTools: true,
-      preload: path.join(__dirname, "preload.mjs"),
-    },
-  });
-  floatingWebCam = new BrowserWindow({
-    width: 400,
     height: 200,
     minHeight: 70,
     maxHeight: 400,
@@ -75,8 +57,27 @@ function createWindow() {
     frame: false,
     transparent: true,
     alwaysOnTop: true,
-    focusable: true,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    focusable: false,
+    icon: path.join(process.env.VITE_PUBLIC, "opal-logo.svg"),
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      devTools: true,
+      preload: path.join(__dirname, "preload.mjs"),
+    },
+  });
+  floatingWebCam = new BrowserWindow({
+    width: 200,
+    height: 200,
+    minHeight: 20,
+    maxHeight: 200,
+    minWidth: 200,
+    maxWidth: 200,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    focusable: false,
+    icon: path.join(process.env.VITE_PUBLIC, "opal-logo.svg"),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -91,19 +92,13 @@ function createWindow() {
   studio.setAlwaysOnTop(true, "screen-saver", 1);
   floatingWebCam.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   floatingWebCam.setAlwaysOnTop(true, "screen-saver", 1);
-
   // Test active push message to Renderer-process.
   win.webContents.on("did-finish-load", () => {
     win?.webContents.send("main-process-message", new Date().toLocaleString());
   });
+
   studio.webContents.on("did-finish-load", () => {
     studio?.webContents.send(
-      "main-process-message",
-      new Date().toLocaleString()
-    );
-  });
-  floatingWebCam.webContents.on("did-finish-load", () => {
-    floatingWebCam?.webContents.send(
       "main-process-message",
       new Date().toLocaleString()
     );
@@ -124,10 +119,49 @@ function createWindow() {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
+
+ipcMain.on("closeApp", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+    win = null;
+    studio = null;
+    floatingWebCam = null;
+  }
+});
+ipcMain.handle("getSources", async () => {
+  try {
+    return await desktopCapturer.getSources({
+      thumbnailSize: {
+        height: 100,
+        width: 150,
+      },
+      fetchWindowIcons: true,
+      types: ["window", "screen"],
+    });
+  } catch (error) {
+    console.error("Failed to get sources:", error);
+    return []; // Return an empty array or handle the error as needed
+  }
+});
+ipcMain.on("media-sources", async (_, payload) => {
+  studio?.webContents.send("profile-received", payload);
+});
+
+ipcMain.on("resize-studio", (_, payload) => {
+  const newSize = payload.shrink ? 100 : 250;
+  studio?.setSize(400, newSize);
+});
+
+ipcMain.on("hide-plugin", (_, payload) => {
+  win?.webContents.send("hide-plugin", payload);
+});
+
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
     win = null;
+    studio = null;
+    floatingWebCam = null;
   }
 });
 

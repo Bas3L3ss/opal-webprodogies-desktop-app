@@ -69,6 +69,10 @@
 }
 
 .draggable {
+  -webkit-app-region: drag;
+}
+
+.non-draggable {
   -webkit-app-region: no-drag;
 }
 
@@ -81,6 +85,6 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: gray;
   border-radius: 10px;
+  background: gray;
 }

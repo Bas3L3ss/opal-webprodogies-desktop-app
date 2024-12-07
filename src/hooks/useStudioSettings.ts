@@ -41,7 +41,7 @@ export const useStudioSettings = (
   });
 
   useEffect(() => {
-    if (screen && audio && preset) {
+    if (screen && audio) {
       window.ipcRenderer.send("media-sources", {
         screen,
         id,
@@ -50,26 +50,26 @@ export const useStudioSettings = (
         plan,
       });
     }
-  }, [audio, id, plan, preset, screen]);
+  }, [screen, audio]);
 
   useEffect(() => {
     const subscribe = watch((values) => {
       setOnPreset(values.preset);
       mutate({
         screen: values.screen!,
-        id,
         audio: values.audio!,
         preset: values.preset!,
+        id,
       });
       window.ipcRenderer.send("media-sources", {
-        screen: values.screen!,
+        screen: values.screen,
         id,
-        audio: values.audio!,
-        preset: values.preset!,
+        audio: values.audio,
+        preset: values.preset,
         plan,
       });
     });
     return () => subscribe.unsubscribe();
-  }, [watch, id, plan, mutate]);
+  }, [watch]);
   return { register, isPending, onPreset };
 };

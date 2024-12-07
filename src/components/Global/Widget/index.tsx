@@ -36,10 +36,12 @@ const Widget = () => {
 
   useEffect(() => {
     if (user && user.id) {
-      fetchUserProfile(user.id).then((p) => setProfile(p));
+      fetchUserProfile(user.id).then((profile) => {
+        setProfile(profile);
+      });
       fetchMediaResources();
     }
-  }, [user, fetchMediaResources]);
+  }, [user]);
 
   return (
     <div className="p-5">
