@@ -119,12 +119,8 @@ ipcMain.on("media-sources", async (_, payload) => {
   studio == null ? void 0 : studio.webContents.send("profile-received", payload);
 });
 ipcMain.on("resize-studio", (_, payload) => {
-  if (payload.shrink) {
-    studio == null ? void 0 : studio.setSize(400, 100);
-  }
-  if (!payload.shrink) {
-    studio == null ? void 0 : studio.setSize(400, 250);
-  }
+  const newSize = payload.shrink ? 100 : 250;
+  studio == null ? void 0 : studio.setSize(400, newSize);
 });
 ipcMain.on("hide-plugin", (_, payload) => {
   win == null ? void 0 : win.webContents.send("hide-plugin", payload);
