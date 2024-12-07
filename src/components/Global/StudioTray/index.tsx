@@ -1,12 +1,12 @@
-import { onStopRecording, StartRecording } from "@/lib/recorder";
-import { cn, videoRecordingTime } from "@/lib/utils";
+import { onStopRecording, selectSources, StartRecording } from "@/lib/recorder";
+import { cn, resizeWindow, videoRecordingTime } from "@/lib/utils";
 import { Pause, Square } from "lucide-react";
 import { Cast } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 /* TODOS: SHOW PLUGIN WHEN STOPPED RECORDING */
 
 const StudioTray = () => {
-  let initialTime = new Date();
+  const initialTime = new Date();
 
   const [preview, setPreview] = useState(false);
   const [onTimer, setOnTimer] = useState<string>("00:00:00");
@@ -34,7 +34,22 @@ const StudioTray = () => {
   const videoElement = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
+    resizeWindow(preview);
+  }, [preview]);
+
+  useEffect(() => {
+    if (onSources && onSources.screen) {
+      selectSources(onSources, videoElement);
+    }
+
+    return () => {
+      selectSources(onSources!, videoElement);
+    };
+  }, [onSources]);
+
+  useEffect(() => {
     if (!recording) return;
+
     const recordTimeInterval = setInterval(() => {
       const time = count + new Date().getTime() - initialTime.getTime();
       setCount(time);
@@ -57,13 +72,11 @@ const StudioTray = () => {
     <></>
   ) : (
     <div className="flex flex-col justify-end gap-y-5 h-screen ">
-      {preview && (
-        <video
-          autoPlay
-          ref={videoElement}
-          className={cn("w-6/12 self-end bg-white")}
-        />
-      )}
+      <video
+        autoPlay
+        ref={videoElement}
+        className={cn("w-6/12 self-end bg-white", !preview ? "hidden" : "")}
+      />
       <div className="rounded-full flex justify-around items-center h-20 w-full border-2 bg-[#171717] draggable border-white/40">
         <div
           {...(onSources && {

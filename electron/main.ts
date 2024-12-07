@@ -85,6 +85,7 @@ function createWindow() {
       preload: path.join(__dirname, "preload.mjs"),
     },
   });
+  //todos: remove this line
 
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   win.setAlwaysOnTop(true, "screen-saver", 1);

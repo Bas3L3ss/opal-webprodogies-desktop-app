@@ -1,5 +1,5 @@
 function App() {
-  return <h1>Web cam component</h1>;
+  return <Webcam />;
 }
 
 export default App;
