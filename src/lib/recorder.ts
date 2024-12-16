@@ -12,6 +12,10 @@ export const StartRecording = (onSources: {
   audio: string;
   id: string;
 }) => {
+  if (!mediaRecorder) {
+    alert("MediaRecorder not initialized. Call selectSources first.");
+    return;
+  }
   hidePluginWindow(true);
   videoTransferFileName = `${uuid()}-${onSources.id.slice(0, 8)}.webm`;
   mediaRecorder.start(1000);
